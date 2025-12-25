@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Moti Mahal | Royal Spice Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'spice-red': '#9f1239', 'spice-crimson': '#be123c', 'spice-orange': '#f97316',  
+                        'spice-gold': '#D4AF37', 'spice-yellow': '#fbbf24', 'spice-cream': '#fffcf0', 'spice-dark': '#4c0519',    
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    animation: { 'blob': 'blob 7s infinite', 'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        slideUp: { from: { opacity: 0, transform: 'translateY(20px)' }, to: { opacity: 1, transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html, body { height: 100dvh; width: 100vw; overflow: hidden; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #be123c; }
+        .spicy-bg { background: linear-gradient(135deg, #be123c 0%, #d41443 40%, #D4AF37 100%); }
+        
+        /* Updated: Ensure full width/height on all devices */
+        #app { height: 100dvh; width: 100vw; overflow: hidden; padding: 0; margin: 0; }
+        #main-content { height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; background: rgba(255,255,255,0.95); border-radius: 0; }
+        
+        .glass-panel { background: rgba(255, 252, 240, 0.95); backdrop-filter: blur(12px); border: 2px solid rgba(212, 175, 55, 0.4); box-shadow: 0 10px 40px -10px rgba(190, 18, 60, 0.3); }
+        .gold-button { background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); color: white; box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5); border: 1px solid #B8860B; }
+        .gold-text-gradient { background: linear-gradient(to bottom, #fde68a 0%, #D4AF37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass-header { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border-bottom: 2px solid rgba(212, 175, 55, 0.2); }
+        
+        /* Updated Scrollbar styles to handle both vertical and horizontal */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #b8860b; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .fixed-bottom-center { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 450px; z-index: 50; }
+        button:focus-visible, a:focus-visible, input:focus-visible { outline: 4px solid #fde68a; outline-offset: 2px; }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="flex items-center justify-center">
+        <div id="main-content" class="relative">
+            <div id="loading-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-spice-cream">
+                <div class="flex flex-col items-center gap-6">
+                    <div class="relative">
+                        <div class="animate-spin rounded-full h-24 w-24 border-t-8 border-b-8 border-spice-gold border-l-transparent border-r-transparent"></div>
+                        <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="crown" class="w-10 h-10 text-spice-gold"></i></div>
+                    </div>
+                    <p class="text-sm text-spice-gold font-extrabold tracking-[0.3em] uppercase animate-pulse">Preparing the Feast</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+        // CONFIGURATION
+        const firebaseConfig = { apiKey: "AIzaSyAonawasJyQbrdTnYAQ2dKrFRF9VMT2wx0", authDomain: "motijheel-swiggy.firebaseapp.com", projectId: "motijheel-swiggy", storageBucket: "motijheel-swiggy.firebasestorage.app", messagingSenderId: "164653037284", appId: "1:164653037284:web:f3663dee0e54b501f31ef1" };
+        const appId = "motijheel-swiggy";
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const KITCHEN_PASSWORD = "Moti2025Mahal";
+        const ADMIN_PASSWORD = "Motijheel2025Lalbagh";
+
+        // Updated Variant Maps
+        const VARIANT_MAPS = {
+            'C': ['Veg', 'Chicken', 'Mixed'],
+            'D': ['Broiler', 'Desi'],
+            'L': ['Small', 'Large'],
+            'M': ['Masala', 'Cheese'],
+            'K': ['Makhani', 'Kadhai', 'Lababdar', 'Palak'],
+            'MT': ['Kosha', 'Rogan Josh', 'Do Pyaza'],
+            'S': ['Penne', 'Spaghetti'],
+            'I': ['Butterscotch', 'Vanilla', 'Chocolate', 'Nolen Gur'],
+            'Z': ['Chilli', 'Schezwan', 'Manchurian', 'Sweet & Sour'],
+            'P': ['Chilli', 'Schezwan', 'Manchurian', 'Sweet & Sour', 'Black Pepper'],
+            'A': ['Veg', 'Non-Veg'],
+            'B': ['Tandoor', 'Naan', 'Kulcha']
+        };
+        
+        const COUNTRY_CODES = [{ code: "+91", label: "🇮🇳 +91" }, { code: "+1", label: "🇺🇸 +1" }, { code: "+44", label: "🇬🇧 +44" }, { code: "+971", label: "🇦🇪 +971" }, { code: "+880", label: "🇧🇩 +880" }, { code: "+61", label: "🇦🇺 +61" }];
+
+        // Menu Data
+        const MENU_DATA = [
+            // SOUP
+            { id: 1, name: "Tomato & Basil Soup", price: 129, cat: "Soup", desc: "Healthy soup of fresh tomatoes flavoured with basil" },
+            { id: 2, name: "Choice of Cream Soup", prices: [129, 149], type: 'A', cat: "Soup", desc: "Authentic creamy soup, smooth and comforting" },
+            { id: 3, name: "Carrot Almond Soup", prices: [129, 149], type: 'A', cat: "Soup", desc: "Vegan soup of blanched carrots and almonds, garlic & pepper" },
+            { id: 4, name: "Manchow Soup", prices: [129, 149], type: 'A', cat: "Soup", desc: "Thick soy and chilli-based soup with crunchy noodles" },
+            { id: 5, name: "Lemon Coriander Soup", prices: [129, 149], type: 'A', cat: "Soup", desc: "Light, healthy clear soup flavoured with coriander" },
+            { id: 6, name: "Tom Yum Soup", prices: [129, 149], type: 'A', cat: "Soup", desc: "Popular Thai soup with bold hot and sour flavours" },
+
+            // SALAD
+            { id: 7, name: "Green Salad", price: 99, cat: "Salad", desc: "Fresh seasonal vegetables, light and refreshing" },
+            { id: 8, name: "Caesar Salad", prices: [169, 199], type: 'A', cat: "Salad", desc: "Iceberg lettuce in Caesar dressing with parmesan & croutons" },
+            { id: 9, name: "Waldorf Salad", prices: [199, 239], type: 'A', cat: "Salad", desc: "Apples, celery and walnuts dressed in creamy mayonnaise" },
+            { id: 10, name: "Greek Salad", prices: [189, 229], type: 'A', cat: "Salad", desc: "Cucumbers, tomatoes, olives and feta in olive oil dressing" },
+            { id: 11, name: "Chicken Tikka Smoked Salad", price: 229, cat: "Salad", desc: "Smoked chicken tikka with tomato, onion, bell pepper" },
+
+            // SMALL BITE
+            { id: 12, name: "Cheese Chickpeas Finger", price: 159, cat: "Small Bite", desc: "Mashed chickpeas and cheese with herbs, crumb fried" },
+            { id: 13, name: "French Fries", price: 139, cat: "Small Bite", desc: "Classic crispy potato fries" },
+            { id: 14, name: "Nachos with Salsa", price: 169, cat: "Small Bite", desc: "Tortilla chips with jalapeno, melted cheese and salsa" },
+            { id: 15, name: "Pakoda", price: 129, cat: "Small Bite", desc: "Mixed vegetable, onion or potato fritters" },
+            { id: 16, name: "Kolkata Fish Fry", price: 199, cat: "Small Bite", desc: "Crumb-fried desi bhetki with lime, garlic and mustard" },
+            { id: 17, name: "Fish Finger", price: 189, cat: "Small Bite", desc: "Crumb-fried desi bhetki fingers, crisp and golden" },
+            { id: 18, name: "Nawabi Devil", prices: [169, 189], type: 'A', cat: "Small Bite", desc: "Spiced chicken or mutton cutlets, Kolkata style" },
+            { id: 19, name: "Chicken Pakoda", price: 169, cat: "Small Bite", desc: "All-time favourite crispy chicken fritters" },
+
+            // APPETIZERS
+            { id: 20, name: "Ambi Paneer Tikka", price: 249, cat: "Appetizers", desc: "Stuffed and grilled cottage cheese cubes" },
+            { id: 21, name: "Koraishuti Tikka", price: 229, cat: "Appetizers", desc: "Spiced green pea galette, grilled" },
+            { id: 22, name: "Malai Broccoli", price: 249, cat: "Appetizers", desc: "Broccoli florets marinated in cheesy cream and roasted" },
+            { id: 23, name: "Nawabi Moti Murgh Kebab", price: 289, cat: "Appetizers", desc: "Juicy chicken kebabs, rich and royal" },
+            { id: 24, name: "Siraji Galouti Kebab", price: 349, cat: "Appetizers", desc: "Soft melt-in-mouth kebabs, Nawabi style" },
+            { id: 25, name: "Murgh Shahi Bhatina", price: 289, cat: "Appetizers", desc: "Special spiced chicken preparation" },
+            { id: 26, name: "Bhatti Ka Murgh Tikka", price: 279, cat: "Appetizers", desc: "Boneless chicken marinated in spiced yogurt, clay oven cooked" },
+            { id: 27, name: "Gandharaj Murgh Tikka", price: 349, cat: "Appetizers", desc: "Chicken tikka with kaffir lime and spiced yogurt" },
+            { id: 28, name: "Fish Mahi Tikka", price: 449, cat: "Appetizers", desc: "Desi bhetki fillet marinated and grilled" },
+            { id: 29, name: "Prawn Lasooni Tikka", price: 479, cat: "Appetizers", desc: "Garlic-marinated tiger prawns grilled in clay oven" },
+            { id: 30, name: "Tandoori Arabian Pomfret", price: 499, cat: "Appetizers", desc: "Whole pomfret marinated and tandoor grilled" },
+
+            // INDO-CHINESE APPETIZERS
+            { id: 31, name: "Crispy Chilli Baby Corn", price: 229, cat: "Indo-Chinese", desc: "Crunchy baby corn tossed in chilli sauce" },
+            { id: 32, name: "Paneer 65", price: 249, cat: "Indo-Chinese", desc: "Crispy paneer tossed in bold Indian spices" },
+            { id: 33, name: "Soya Chilli Paneer", price: 239, cat: "Indo-Chinese", desc: "Paneer tossed in Chinese-style chilli sauce" },
+            { id: 34, name: "Wood Fire Chicken Chilli", price: 269, cat: "Indo-Chinese", desc: "Boneless chicken tossed in soy chilli sauce" },
+            { id: 35, name: "Hunan Chicken", price: 279, cat: "Indo-Chinese", desc: "Chicken and vegetables in spicy Hunan sauce" },
+            { id: 36, name: "Tai Pai Kai", price: 279, cat: "Indo-Chinese", desc: "Crispy fried chicken tossed in Thai curry paste" },
+            { id: 37, name: "Thai Basil Chicken", price: 289, cat: "Indo-Chinese", desc: "Chicken tossed with Thai chilli basil sauce" },
+            { id: 38, name: "Bamboo Cashew Nut Chicken", price: 299, cat: "Indo-Chinese", desc: "Chicken with bamboo shoots and cashews in Schezwan sauce" },
+            { id: 39, name: "Sweet & Spicy Crispy Chicken", price: 289, cat: "Indo-Chinese", desc: "Crispy chicken in tangy sweet-spicy glaze" },
+            { id: 40, name: "Teriyaki Chicken", price: 289, cat: "Indo-Chinese", desc: "Chicken glazed with sweet savoury teriyaki sauce" },
+            { id: 41, name: "Chicken 65", price: 279, cat: "Indo-Chinese", desc: "Crispy fried chicken with bold spices" },
+            { id: 42, name: "Roasted Chicken in Chilli Plum Sauce", price: 299, cat: "Indo-Chinese", desc: "Charred chicken in sweet and tangy plum chilli glaze" },
+            { id: 43, name: "Pan Fried Chilli Fish", price: 349, cat: "Indo-Chinese", desc: "Fish fillets pan-seared and tossed in spicy chilli sauce" },
+            { id: 44, name: "Fish in Tangy Mustard", price: 369, cat: "Indo-Chinese", desc: "Bengali-style fish in sharp mustard sauce" },
+            { id: 45, name: "Prawn Chilli Basil Dry", price: 479, cat: "Indo-Chinese", desc: "Crispy prawns tossed in chilli basil sauce" },
+
+            // SIDES
+            { id: 46, name: "Choice of Raita", price: 129, cat: "Sides", desc: "Mixed vegetable, pineapple or boondi" },
+            { id: 47, name: "Plain Curd", price: 69, cat: "Sides", desc: "Fresh homemade yogurt" },
+            { id: 48, name: "Papad", price: 79, cat: "Sides", desc: "Masala, fried or roasted" },
+            { id: 49, name: "Masala Peanut", price: 149, cat: "Sides", desc: "Roasted peanuts tossed with spices" },
+            { id: 50, name: "Fried Cashewnuts", price: 249, cat: "Sides", desc: "Lightly roasted cashews" },
+
+            // INDIAN
+            { id: 51, name: "Dal Tadka", price: 149, cat: "Indian" },
+            { id: 52, name: "Dal Makhani", price: 179, cat: "Indian" },
+            { id: 53, name: "Yellow Dal Fry", price: 129, cat: "Indian" },
+            { id: 54, name: "Paneer", prices: [249, 249, 249, 249], type: 'K', cat: "Indian", desc: "Choice of Preparation" },
+            { id: 55, name: "Tawa Veg", price: 229, cat: "Indian" },
+            { id: 56, name: "Aloo Do Pyaza", price: 199, cat: "Indian" },
+            { id: 57, name: "Butter Chicken", price: 289, cat: "Indian" },
+            { id: 58, name: "Chicken Bharta", price: 279, cat: "Indian" },
+            { id: 59, name: "Chicken Do Pyaza", price: 289, cat: "Indian" },
+            { id: 60, name: "Mutton", prices: [479, 479, 479], type: 'MT', cat: "Indian", desc: "Choice of Preparation" },
+            { id: 61, name: "Prawn Butter Masala", price: 479, cat: "Indian" },
+
+            // RICE & ROTI
+            { id: 62, name: "Tandoor Roti", prices: [49, 59], type: 'B', cat: "Rice & Roti" }, // Plain/Butter assumed logic
+            { id: 63, name: "Naan", prices: [59, 69], type: 'L', cat: "Rice & Roti" },
+            { id: 64, name: "Stuffed Kulcha", prices: [99], type: 'M', cat: "Rice & Roti" },
+            { id: 65, name: "Lachha Paratha", price: 59, cat: "Rice & Roti" },
+            { id: 66, name: "Steamed Rice", price: 99, cat: "Rice & Roti" },
+            { id: 67, name: "Veg Pulao", price: 169, cat: "Rice & Roti" },
+            { id: 68, name: "Basanti Pulao", price: 179, cat: "Rice & Roti" },
+            { id: 69, name: "Bengali Kaju Kishmish Pulao", price: 179, cat: "Rice & Roti" },
+            { id: 70, name: "Jeera Rice", price: 149, cat: "Rice & Roti" },
+            { id: 71, name: "Dum Biryani", prices: [149, 249], type: 'A', cat: "Rice & Roti" },
+            { id: 72, name: "Spl Biryani", prices: [249, 399], type: 'A', cat: "Rice & Roti" },
+            { id: 73, name: "Sizzler Biryani", prices: [249, 399], type: 'A', cat: "Rice & Roti" },
+
+            // BENGAL
+            { id: 74, name: "Narkel Diya Postor Bora", price: 259, cat: "Bengal" },
+            { id: 75, name: "Jhuri Aloo Bhaja", price: 99, cat: "Bengal" },
+            { id: 76, name: "Begun Bhaja", price: 99, cat: "Bengal" },
+            { id: 77, name: "Aloo Posto", price: 179, cat: "Bengal" },
+            { id: 78, name: "Phulkopir Roast", price: 179, cat: "Bengal" },
+            { id: 79, name: "Channar Dalna", price: 239, cat: "Bengal" },
+            { id: 80, name: "Plain Masoor Dal", price: 99, cat: "Bengal" },
+            { id: 81, name: "Bhaja Moong Dal", price: 129, cat: "Bengal" },
+            { id: 82, name: "Macher Matha Diye Moong Dal", price: 149, cat: "Bengal" },
+            { id: 83, name: "Kacha Lanka Dhonepata Murgi", prices: [279, 379], type: 'D', cat: "Bengal" },
+            { id: 84, name: "Daab Murgi", prices: [289, 399], type: 'D', cat: "Bengal" },
+            { id: 85, name: "Kosha Murgi", prices: [249, 379], type: 'D', cat: "Bengal" },
+            { id: 86, name: "Borisaler Bhapa Murgi", prices: [289, 399], type: 'D', cat: "Bengal" },
+            { id: 87, name: "Kacha Lanka Mangsho", price: 399, cat: "Bengal" },
+            { id: 88, name: "Morich Mangsho", price: 399, cat: "Bengal" },
+            { id: 89, name: "Ilish Bhapa", price: 349, cat: "Bengal" },
+            { id: 90, name: "Begun Ilish", price: 319, cat: "Bengal" },
+            { id: 91, name: "Chingri Malai Curry", price: 449, cat: "Bengal" },
+            { id: 92, name: "Bhetki Bhapa", price: 499, cat: "Bengal" },
+            { id: 93, name: "Bhetki Paturi", price: 349, cat: "Bengal" },
+            { id: 94, name: "Katla Kalia", price: 199, cat: "Bengal" },
+            { id: 95, name: "Katla Bhapa", price: 229, cat: "Bengal" },
+
+            // CONTINENTAL
+            { id: 96, name: "Arabita Pasta", prices: [249, 299], type: 'S', cat: "Continental" },
+            { id: 97, name: "Mama Rossa Pasta", prices: [249, 299], type: 'S', cat: "Continental" },
+            { id: 98, name: "Creamy Cheese Sauce Pasta", prices: [259, 309], type: 'S', cat: "Continental" },
+            { id: 99, name: "Spaghetti Aglio E Olio", prices: [299, 349], type: 'A', cat: "Continental" },
+            { id: 100, name: "Au Gratin", prices: [339, 369], type: 'A', cat: "Continental" },
+            { id: 101, name: "Baked Pasta", prices: [299, 349], type: 'A', cat: "Continental" },
+            { id: 102, name: "Chicken Stroganoff", price: 359, cat: "Continental" },
+            { id: 103, name: "Cottage Cheese Steak Sizzler", price: 359, cat: "Continental" },
+            { id: 104, name: "Grilled Fish with Lemon Butter Sauce", price: 429, cat: "Continental" },
+            { id: 105, name: "Grilled Chicken Steak Sizzler", price: 349, cat: "Continental" },
+            { id: 106, name: "Classic Margherita Pizza", price: 249, cat: "Continental" },
+            { id: 107, name: "Paneer Makhni Pizza", price: 289, cat: "Continental" },
+            { id: 108, name: "B.B.Q Chicken Pizza", price: 329, cat: "Continental" },
+            { id: 109, name: "Chicken Makhani Pizza", price: 349, cat: "Continental" },
+
+            // PAN ASIAN
+            { id: 110, name: "Chinese Fried Rice", prices: [199, 249], type: 'A', cat: "Pan Asian" }, // Reduced to Veg/NonVeg based on input
+            { id: 111, name: "Schezwan Fried Rice", prices: [219, 259], type: 'A', cat: "Pan Asian" },
+            { id: 112, name: "Burnt Garlic Fried Rice", prices: [219, 259], type: 'A', cat: "Pan Asian" },
+            { id: 113, name: "Singaporean Rice", prices: [219, 259], type: 'A', cat: "Pan Asian" },
+            { id: 114, name: "Mongolian Rice", prices: [249, 289], type: 'A', cat: "Pan Asian" },
+            { id: 115, name: "Hakka Noodles", prices: [199, 249], type: 'A', cat: "Pan Asian" },
+            { id: 116, name: "Chilli Garlic Hakka Noodles", prices: [219, 259], type: 'A', cat: "Pan Asian" },
+            { id: 117, name: "Schezwan Hakka Noodles", prices: [219, 259], type: 'A', cat: "Pan Asian" },
+            { id: 118, name: "Cantonese Noodles", prices: [249, 289], type: 'A', cat: "Pan Asian" },
+            { id: 119, name: "Pan Fried Noodles", prices: [249, 289], type: 'A', cat: "Pan Asian" },
+            { id: 120, name: "Mongolian Noodles", prices: [249, 289], type: 'A', cat: "Pan Asian" },
+            { id: 121, name: "Paneer in Sauce", prices: [269, 269, 269, 269], type: 'Z', cat: "Pan Asian" },
+            { id: 122, name: "Mushroom in Sauce", prices: [249, 249, 249, 249], type: 'Z', cat: "Pan Asian" },
+            { id: 123, name: "Chicken in Sauce", prices: [279, 279, 279, 279, 279], type: 'P', cat: "Pan Asian" },
+            { id: 124, name: "Fish in Sauce", prices: [339, 339, 339, 339, 339], type: 'P', cat: "Pan Asian" },
+            { id: 125, name: "Prawn in Sauce", prices: [349, 349, 349, 349, 349], type: 'P', cat: "Pan Asian" },
+
+            // DESSERT
+            { id: 126, name: "Hot Chhanar Malpua", price: 119, cat: "Dessert" },
+            { id: 127, name: "Bengali Baked Rasgulla", price: 119, cat: "Dessert" },
+            { id: 128, name: "Blueberry Cheesecake", price: 159, cat: "Dessert" },
+            { id: 129, name: "Brownie", price: 119, cat: "Dessert" },
+            { id: 130, name: "Tutti Frutti Sundae", price: 139, cat: "Dessert" },
+            { id: 131, name: "Ice Cream", prices: [99, 99, 99, 99], type: 'I', cat: "Dessert" }
+        ];
+
+        const CATEGORIES = ["All", ...new Set(MENU_DATA.map(i => i.cat))];
+
+        window.state = {
+            view: 'welcome', cart: [], activeCategory: 'All', phoneNumber: '', countryCode: '+91',
+            address: '', activeOrderId: null, orders: [], user: null, isPlacingOrder: false,
+            variantModal: null, lookupError: '', lookupMethod: 'token', lookupCountryCode: '+91'
+        };
+
+        window.setState = (update) => {
+            window.state = { ...window.state, ...update };
+            render();
+        };
+
+        async function initApp() {
+            try {
+                const userCred = await signInAnonymously(auth);
+                window.state.user = userCred.user;
+                setupSync();
+            } catch (e) { console.error("Auth failed:", e); }
+        }
+
+        function setupSync() {
+            if (!window.state.user) return;
+            const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+            onSnapshot(ordersRef, (snapshot) => {
+                const orders = [];
+                snapshot.forEach(doc => orders.push({ cloudId: doc.id, ...doc.data() }));
+                window.state.orders = orders.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                document.getElementById('loading-screen')?.classList.add('hidden');
+                render();
+            });
+        }
+
+        window.handleAddToCart = (item) => {
+            if (item.prices) { window.setState({ variantModal: { item } }); return; }
+            addToCartLogic(item.name, item.price, item.id);
+        };
+
+        window.addVariantToCart = (variantName, variantPrice) => {
+            const item = window.state.variantModal.item;
+            addToCartLogic(`${item.name} (${variantName})`, variantPrice, `${item.id}-${variantName}`);
+            window.setState({ variantModal: null });
+        };
+
+        function addToCartLogic(displayName, price, uniqueId) {
+            const existing = window.state.cart.find(i => i.uid === uniqueId);
+            if (existing) { existing.qty++; }
+            else { window.state.cart.push({ name: displayName, price, qty: 1, uid: uniqueId }); }
+            render();
+        }
+
+        window.placeOrder = async () => {
+            if (window.state.isPlacingOrder) return;
+            if (!window.state.address || window.state.phoneNumber.length < 5) {
+                const err = document.getElementById('form-error');
+                if(err) err.classList.remove('hidden');
+                return;
+            }
+            window.setState({ isPlacingOrder: true });
+            try {
+                const orderId = "MOT-" + Math.random().toString(36).substr(2, 4).toUpperCase();
+                const subTotal = window.state.cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+                const fullPhone = window.state.countryCode + window.state.phoneNumber;
+                const newOrder = {
+                    id: orderId, address: window.state.address, phone: fullPhone,
+                    items: window.state.cart, total: Math.round(subTotal * 1.05),
+                    status: 0, timestamp: serverTimestamp(), time: new Date().toLocaleString()
+                };
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), newOrder);
+                window.setState({ view: 'tracking', activeOrderId: orderId, cart: [], isPlacingOrder: false });
+            } catch (err) { window.setState({ isPlacingOrder: false }); }
+        };
+
+        window.lookupOrder = () => {
+            const method = window.state.lookupMethod;
+            let order = null;
+            if (method === 'token') {
+                const token = document.getElementById('look-token').value.trim().toUpperCase();
+                order = window.state.orders.find(o => o.id === token);
+            } else {
+                const houseNo = document.getElementById('look-room').value.trim();
+                const phoneInput = document.getElementById('look-phone').value.trim();
+                const fullPhone = window.state.lookupCountryCode + phoneInput;
+                order = window.state.orders.find(o => o.address.includes(houseNo) && o.phone === fullPhone);
+            }
+            if (order) { window.setState({ activeOrderId: order.id, view: 'tracking', lookupError: '' }); } 
+            else { window.setState({ lookupError: 'Order not found. Please check your details.' }); }
+        };
+
+        window.updateStatus = async (cloudId, currentStatus, targetStatus) => {
+            if (targetStatus !== currentStatus + 1) return;
+            if (targetStatus === 3) {
+                const fileInput = document.getElementById(`photo-upload-${cloudId}`);
+                if (!fileInput.files || !fileInput.files[0]) { alert("Photo required."); return; }
+                const reader = new FileReader();
+                reader.onloadend = async () => {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', cloudId), { 
+                        status: targetStatus, completionPhoto: reader.result, completedAt: serverTimestamp()
+                    });
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', cloudId), { status: targetStatus }); }
+        };
+
+        window.deleteOrder = async (cloudId) => {
+            if(confirm("Delete this order?")) { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', cloudId)); }
+        };
+
+        function render() {
+            const container = document.getElementById('main-content');
+            if (!container) return;
+            const cartCount = window.state.cart.reduce((a, b) => a + b.qty, 0);
+            
+            const Header = (title, backFn) => `
+                <header class="p-6 shrink-0 z-40 flex justify-between items-center glass-header sticky top-0">
+                    <h2 onclick="${backFn ? backFn : "setState({view: 'welcome'})"}" class="font-bold text-xl text-spice-red tracking-tight flex items-center gap-2 cursor-pointer group">
+                        ${backFn ? '<div class="bg-spice-gold/10 p-2 rounded-full group-hover:bg-spice-gold/20 transition-colors"><i data-lucide="chevron-left" class="w-6 h-6 text-spice-gold"></i></div>' : ''}
+                        ${title}
+                    </h2>
+                    ${window.state.view !== 'welcome' && !['kitchen','kitchen_login','admin','admin_login','menu_view'].includes(window.state.view) ? `
+                    <div class="flex bg-spice-cream p-1 rounded-2xl border border-spice-gold/20 shadow-inner">
+                        <button onclick="setState({view: 'user'})" class="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${window.state.view === 'user' ? 'gold-button shadow-lg' : 'text-spice-gold/60 hover:text-spice-gold'}">Menu</button>
+                        <button onclick="setState({view: 'order_lookup'})" class="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${['order_lookup','tracking'].includes(window.state.view) ? 'gold-button shadow-lg' : 'text-spice-gold/60 hover:text-spice-gold'}">Track</button>
+                    </div>` : ''}
+                </header>
+            `;
+
+            if (window.state.view === 'welcome') {
+                // Updated: Added overflow-y-auto to allow scrolling if content overflows on small heights
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col justify-between p-8 text-center animate-slide-up relative h-full overflow-y-auto custom-scrollbar bg-gradient-to-br from-spice-red via-spice-crimson to-spice-gold">
+                        <div class="absolute -top-20 -left-20 w-64 h-64 bg-spice-orange rounded-full mix-blend-screen filter blur-[60px] opacity-40 animate-blob"></div>
+                        <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-spice-gold rounded-full mix-blend-screen filter blur-[60px] opacity-30 animate-blob" style="animation-delay: 2s"></div>
+
+                        <div class="flex-1 flex flex-col items-center justify-center z-10 min-h-[300px]">
+                            <h1 class="text-7xl md:text-9xl font-black tracking-tighter text-white leading-[0.9] pb-4 drop-shadow-lg">
+                                Moti<br><span class="gold-text-gradient">Mahal</span>
+                            </h1>
+                            <p class="text-spice-cream font-bold text-sm md:text-base uppercase tracking-[0.4em] inline-block border-t border-white/20 pt-6 mt-2 mb-12">The Royal Taste of India</p>
+                        </div>
+                        
+                        <div class="w-full max-w-sm space-y-6 relative z-10 mx-auto mb-16">
+                            <button onclick="setState({view: 'user'})" class="w-full gold-button p-6 rounded-2xl font-black text-2xl shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3">
+                                <i data-lucide="flame" class="w-7 h-7 fill-current"></i> Order Food
+                            </button>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <button onclick="setState({view: 'menu_view'})" class="glass-panel text-spice-red p-5 rounded-2xl font-black text-lg hover:bg-white transition-all flex items-center justify-center gap-2 border-white/20">
+                                    <i data-lucide="book-open" class="w-6 h-6 text-spice-gold"></i> Menu
+                                </button>
+                                <button onclick="setState({view: 'order_lookup'})" class="glass-panel text-spice-red p-5 rounded-2xl font-black text-lg hover:bg-white transition-all flex items-center justify-center gap-2 border-white/20">
+                                    <i data-lucide="radar" class="w-6 h-6 text-spice-gold"></i> Track
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="w-full flex justify-between px-4 text-white/70 z-10 pb-4">
+                            <button onclick="setState({view: 'admin_login'})" class="hover:text-spice-gold transition-colors p-2"><i data-lucide="shield" class="w-7 h-7"></i></button>
+                            <a href="tel:+918001365465" class="text-white font-bold text-sm flex items-center gap-2 bg-black/20 px-6 py-3 rounded-full border border-white/20 hover:bg-white/20 transition-all backdrop-blur-sm">
+                                <i data-lucide="phone" class="w-4 h-4 text-spice-gold"></i> Support
+                            </a>
+                            <button onclick="setState({view: 'kitchen_login'})" class="hover:text-spice-gold transition-colors p-2"><i data-lucide="chef-hat" class="w-7 h-7"></i></button>
+                        </div>
+                    </div>
+                `;
+            } 
+            else if (window.state.view === 'menu_view') {
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col h-full bg-spice-dark relative">
+                        <button onclick="setState({view: 'welcome'})" class="absolute top-4 right-4 z-50 bg-white text-spice-red p-3 rounded-full shadow-lg font-bold border-2 border-spice-gold hover:scale-105 transition-transform flex items-center gap-2">
+                             <i data-lucide="x" class="w-6 h-6"></i> EXIT
+                        </button>
+                        <div class="flex-1 overflow-y-auto -webkit-overflow-scrolling-touch custom-scrollbar pb-32">
+                           <div class="w-full relative" style="height: 150vh;">
+                                <div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 129.4118%;"><iframe src="https://drive.google.com/file/d/1n1j6K5MlwAfFTYjIivEw4609xhOoj-Qn/preview?usp=embed_googleplus" style="top: 0; left: 0; width: 100%; height: 100%; position: absolute; border: 0;" allowfullscreen></iframe></div>
+                           </div>
+                        </div>
+                    </div>
+                `;
+            }
+            else if (['user', 'checkout', 'tracking', 'order_lookup'].includes(window.state.view)) {
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col h-full animate-slide-up relative bg-spice-cream/50">
+                        ${Header(window.state.view === 'checkout' ? 'Checkout' : window.state.view === 'tracking' ? 'Live Status' : window.state.view === 'order_lookup' ? 'Track Order' : 'Order Menu', window.state.view === 'user' ? "setState({view: 'welcome'})" : null)}
+                        
+                        <main class="flex-1 overflow-y-auto p-4 md:p-6 pb-32 custom-scrollbar relative z-10">
+                            ${window.state.view === 'user' ? `
+                                <div class="max-w-4xl mx-auto mt-2">
+                                    <div class="flex gap-3 overflow-x-auto custom-scrollbar pb-4 mb-2 sticky top-0 bg-transparent z-30 pt-2 backdrop-blur-sm">
+                                        ${CATEGORIES.map(c => `
+                                            <button onclick="setState({activeCategory: '${c}'})" class="whitespace-nowrap px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider border transition-all ${window.state.activeCategory === c ? 'gold-button border-spice-gold shadow-lg scale-105' : 'bg-white text-spice-gold border-spice-gold/30 hover:border-spice-gold hover:bg-spice-cream'}">${c}</button>
+                                        `).join('')}
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-5">
+                                        ${MENU_DATA.filter(m => window.state.activeCategory === 'All' || m.cat === window.state.activeCategory).map(item => `
+                                            <div class="bg-white p-6 rounded-[1.8rem] border border-spice-gold/10 flex justify-between items-center group hover:border-spice-gold/60 hover:shadow-xl transition-all shadow-sm">
+                                                <div class="flex-1 pr-4">
+                                                    <h3 class="font-bold text-spice-dark text-lg leading-tight">${item.name}</h3>
+                                                    ${item.desc ? `<p class="text-xs text-gray-400 mt-1 line-clamp-2">${item.desc}</p>` : ''}
+                                                    <p class="text-spice-gold font-black text-lg mt-2">${item.price ? '₹'+item.price : '<span class="text-[10px] text-gray-400 font-normal uppercase mr-1">Starts</span> ₹'+item.prices[0]}</p>
+                                                </div>
+                                                <button onclick="handleAddToCart(${JSON.stringify(item).replace(/"/g, '&quot;')})" class="h-14 w-14 rounded-2xl flex items-center justify-center text-white gold-button shadow-lg active:scale-90 transition-all hover:brightness-110">
+                                                    <i data-lucide="plus" class="w-7 h-7"></i>
+                                                </button>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            ${window.state.view === 'checkout' ? `
+                                <div class="max-w-lg mx-auto space-y-6">
+                                    <div class="glass-panel p-8 rounded-[2rem] space-y-5">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <div class="w-12 h-12 rounded-full bg-spice-gold/10 flex items-center justify-center text-spice-gold border border-spice-gold/30"><i data-lucide="map-pin" class="w-6 h-6"></i></div>
+                                            <h3 class="font-black text-xl text-spice-dark">Delivery Details</h3>
+                                        </div>
+                                        <div id="form-error" class="hidden bg-red-100 border border-red-200 text-red-800 p-4 rounded-xl text-sm font-bold text-center flex items-center justify-center gap-2"><i data-lucide="alert-circle" class="w-4 h-4"></i> Incomplete Details</div>
+                                        <textarea placeholder="Enter Full Delivery Address" oninput="window.state.address=this.value" class="w-full p-5 bg-white border border-spice-gold/20 rounded-2xl outline-none font-medium text-lg text-spice-dark h-32 resize-none focus:border-spice-gold focus:ring-4 focus:ring-spice-gold/10 transition-all shadow-inner">${window.state.address}</textarea>
+                                        <div class="flex gap-3">
+                                            <select onchange="window.state.countryCode=this.value" class="p-5 bg-white border border-spice-gold/20 rounded-2xl outline-none font-bold text-lg min-w-[100px] text-spice-dark focus:border-spice-gold">
+                                                ${COUNTRY_CODES.map(c => `<option value="${c.code}" ${c.code === window.state.countryCode ? 'selected' : ''}>${c.label}</option>`).join('')}
+                                            </select>
+                                            <input type="tel" placeholder="Phone Number" oninput="window.state.phoneNumber=this.value" value="${window.state.phoneNumber}" class="flex-1 p-5 bg-white border border-spice-gold/20 rounded-2xl outline-none font-bold text-lg text-spice-dark focus:border-spice-gold">
+                                        </div>
+                                    </div>
+                                    <div class="bg-gradient-to-br from-spice-red to-spice-gold p-8 rounded-[2rem] shadow-xl relative overflow-hidden text-white border border-white/10">
+                                        <h3 class="font-bold text-2xl mb-6 flex items-center gap-3"><i data-lucide="receipt" class="w-6 h-6 text-spice-yellow"></i> Order Summary</h3>
+                                        <div class="space-y-4 mb-6 border-b border-white/20 pb-6 border-dashed">
+                                            ${window.state.cart.map(i => `<div class="flex justify-between items-start text-base text-spice-cream"><span class="flex gap-3"><span class="font-black text-white">${i.qty}x</span><span>${i.name}</span></span><span class="font-bold text-white">₹${i.price * i.qty}</span></div>`).join('')}
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-bold text-white/70 text-xs uppercase tracking-widest mb-1">Total Sovereign Pay</span>
+                                            <span class="text-4xl font-black text-white drop-shadow-md">₹${Math.round(window.state.cart.reduce((a,b)=>a+(b.price*b.qty),0)*1.05)}</span>
+                                        </div>
+                                    </div>
+                                    <button onclick="placeOrder()" class="w-full ${window.state.isPlacingOrder ? 'bg-gray-400' : 'gold-button'} p-6 rounded-2xl font-black text-xl shadow-xl transition-all active:scale-[0.98] py-6">
+                                        ${window.state.isPlacingOrder ? 'Processing Royal Order...' : 'Confirm Order'}
+                                    </button>
+                                </div>
+                            ` : ''}
+
+                            ${window.state.view === 'order_lookup' ? `
+                                <div class="max-w-md mx-auto py-12">
+                                    <div class="mb-12 flex flex-col items-center text-center">
+                                        <div class="w-28 h-28 bg-spice-cream border border-spice-gold/20 rounded-full flex items-center justify-center mb-8 shadow-xl relative">
+                                            <div class="absolute inset-0 rounded-full border border-spice-gold opacity-30 animate-ping"></div>
+                                            <i data-lucide="crown" class="text-spice-gold w-12 h-12"></i>
+                                        </div>
+                                        <h2 class="font-black text-4xl text-spice-dark">Royal Tracking</h2>
+                                    </div>
+                                    <div class="flex p-1.5 bg-white border border-spice-gold/20 rounded-2xl mb-10 shadow-sm">
+                                        <button onclick="setState({lookupMethod: 'token'})" class="flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-wider transition-all ${window.state.lookupMethod === 'token' ? 'gold-button shadow-md' : 'text-spice-gold/60 hover:text-spice-gold'}">Token</button>
+                                        <button onclick="setState({lookupMethod: 'details'})" class="flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-wider transition-all ${window.state.lookupMethod === 'details' ? 'gold-button shadow-md' : 'text-spice-gold/60 hover:text-spice-gold'}">Details</button>
+                                    </div>
+                                    <div class="space-y-5">
+                                        ${window.state.lookupMethod === 'token' ? `
+                                            <input type="text" id="look-token" placeholder="MOT-XXXX" class="w-full p-6 bg-white border border-spice-gold/20 rounded-2xl font-black outline-none focus:border-spice-gold transition-all uppercase text-center tracking-[0.2em] text-2xl text-spice-red shadow-inner">
+                                        ` : `
+                                            <div class="space-y-4"><input type="text" id="look-room" placeholder="Enter House No" class="w-full p-6 bg-white border border-spice-gold/20 rounded-2xl font-bold text-lg text-spice-dark outline-none focus:border-spice-gold shadow-inner"><input type="tel" id="look-phone" placeholder="Phone Number" class="w-full p-6 bg-white border border-spice-gold/20 rounded-2xl font-bold text-lg text-spice-dark outline-none focus:border-spice-gold shadow-inner"></div>
+                                        `}
+                                        <button onclick="lookupOrder()" class="w-full gold-button p-6 rounded-2xl font-black text-xl shadow-lg mt-6 active:scale-95 transition-all">Track My Order</button>
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            ${window.state.view === 'tracking' ? `
+                                <div class="flex flex-col items-center py-8 max-w-sm mx-auto">
+                                    ${(()=>{
+                                        const order = window.state.orders.find(o => o.id === window.state.activeOrderId);
+                                        if (!order) return `<div class="animate-pulse text-spice-gold font-bold text-xl">SEARCHING ARCHIVES...</div>`;
+                                        const steps = ["Order Received", "Preparing Feast", "Royal Delivery", "Arrived"];
+                                        return `
+                                            <div class="bg-gradient-to-br from-spice-red to-spice-crimson border border-spice-gold/30 w-full rounded-[2.5rem] p-10 text-center shadow-2xl mb-12 relative overflow-hidden">
+                                                <div class="absolute -top-10 -left-10 w-40 h-40 bg-spice-gold blur-[60px] opacity-20"></div>
+                                                <p class="text-xs font-black tracking-[0.3em] text-spice-gold mb-3 uppercase">#${order.id}</p>
+                                                <h2 class="text-4xl font-black mb-2 text-white">${steps[order.status]}</h2>
+                                                <p class="text-sm text-white/80 font-medium px-4 mt-2 border-t border-white/10 pt-2 inline-block">${order.address}</p>
+                                            </div>
+                                            <div class="w-full space-y-0 relative pl-6">
+                                                 <div class="absolute left-[31px] top-5 bottom-12 w-1 bg-spice-gold/20 rounded-full"></div>
+                                                ${steps.map((s, idx) => `
+                                                    <div class="flex items-start gap-8 pb-12 relative z-10">
+                                                        <div class="w-8 h-8 rounded-full border-[3px] flex items-center justify-center bg-white z-20 ${order.status >= idx ? 'bg-spice-gold border-spice-gold shadow-[0_0_20px_rgba(212,175,55,0.6)] scale-110' : 'border-gray-200'}">
+                                                            ${order.status >= idx ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : ''}
+                                                        </div>
+                                                        <div class="flex flex-col -mt-1.5">
+                                                            <span class="font-bold text-lg ${order.status >= idx ? 'text-spice-dark' : 'text-gray-300'}">${s}</span>
+                                                            <span class="text-xs font-bold uppercase tracking-wide mt-1 ${order.status === idx ? 'text-spice-gold animate-pulse' : 'text-gray-300'}">${order.status === idx ? 'In Progress' : order.status > idx ? 'Completed' : 'Pending'}</span>
+                                                        </div>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        `;
+                                    })()}
+                                </div>
+                            ` : ''}
+                        </main>
+
+                        ${window.state.view === 'user' && cartCount > 0 ? `
+                            <div class="fixed-bottom-center animate-slide-up">
+                                <button onclick="setState({view: 'checkout'})" class="w-full bg-spice-dark text-white p-5 rounded-2xl flex justify-between items-center shadow-2xl font-bold hover:scale-[1.02] transition-transform border-2 border-spice-gold/30 backdrop-blur-md">
+                                    <span class="flex items-center gap-5">
+                                        <span class="gold-button w-12 h-12 rounded-xl flex items-center justify-center text-lg font-black shadow-lg border-2 border-white/20">${cartCount}</span>
+                                        <span class="text-white font-black text-2xl">₹${window.state.cart.reduce((a,b)=>a+(b.price*b.qty),0)}</span>
+                                    </span>
+                                    <span class="uppercase tracking-widest text-xs font-black flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">Proceed <i data-lucide="arrow-right" class="w-4 h-4 text-spice-gold"></i></span>
+                                </button>
+                            </div>
+                        ` : ''}
+
+                        ${window.state.variantModal ? `
+                            <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-spice-dark/80 backdrop-blur-sm">
+                                <div class="bg-white border-2 border-spice-gold/30 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center animate-slide-up">
+                                    <h3 class="font-black text-2xl text-spice-dark mb-1">${window.state.variantModal.item.name}</h3>
+                                    <p class="text-spice-gold text-xs font-bold uppercase tracking-[0.2em] mb-8">Select Preference</p>
+                                    <div class="w-full space-y-4">
+                                        ${window.state.variantModal.item.prices.map((price, idx) => {
+                                            const label = VARIANT_MAPS[window.state.variantModal.item.type]?.[idx] || 'Option ' + (idx+1);
+                                            return `<button onclick="addVariantToCart('${label}', ${price})" class="w-full p-5 rounded-2xl bg-spice-cream border-2 border-spice-gold/10 hover:border-spice-gold hover:bg-spice-gold/10 flex justify-between items-center transition-all group shadow-sm hover:shadow-md"><span class="font-bold text-lg text-spice-dark/80 group-hover:text-spice-dark">${label}</span><span class="font-black text-xl text-spice-gold">₹${price}</span></button>`;
+                                        }).join('')}
+                                    </div>
+                                    <button onclick="setState({variantModal: null})" class="mt-8 text-gray-400 text-sm font-bold uppercase tracking-widest hover:text-spice-red transition-colors p-2">Cancel</button>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            } 
+            else if (['kitchen_login', 'kitchen'].includes(window.state.view)) {
+                // ... (Kitchen view remains unchanged)
+                container.innerHTML = `
+                    <div class="flex-1 bg-spice-dark text-white flex flex-col h-full overflow-hidden">
+                        ${window.state.view === 'kitchen_login' ? `
+                            <div class="flex-1 flex flex-col items-center justify-center p-8 bg-spice-red/20 relative">
+                                <button onclick="setState({view: 'welcome'})" class="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"><i data-lucide="x" class="w-8 h-8"></i></button>
+                                <div class="w-20 h-20 gold-button rounded-3xl flex items-center justify-center mb-8 shadow-xl"><i data-lucide="chef-hat" class="w-10 h-10"></i></div>
+                                <h2 class="text-3xl font-black mb-10 text-white tracking-tight">Kitchen Portal</h2>
+                                <input id="kit-pwd" type="password" placeholder="Passcode" class="w-full max-w-xs bg-black/40 border-2 border-white/10 p-6 rounded-2xl text-center mb-6 text-white font-bold tracking-widest text-xl focus:border-spice-gold outline-none transition-all">
+                                <button onclick="if(document.getElementById('kit-pwd').value==='${KITCHEN_PASSWORD}') setState({view:'kitchen'})" class="w-full max-w-xs gold-button p-6 rounded-2xl font-black text-xl shadow-lg">Authenticate</button>
+                            </div>
+                        ` : `
+                            <header class="p-8 border-b border-white/10 shrink-0 flex justify-between items-center bg-spice-red/10">
+                                <h2 class="font-black text-2xl text-spice-gold flex items-center gap-3"><i data-lucide="flame" class="w-6 h-6"></i> Kitchen Orders</h2>
+                                <button onclick="setState({view:'welcome'})" class="bg-white/5 p-4 rounded-2xl hover:bg-white/10 transition-colors border border-white/5 text-white"><i data-lucide="log-out" class="w-5 h-5"></i> EXIT</button>
+                            </header>
+                            <div class="flex-1 overflow-y-auto p-8 space-y-6 bg-black/20 custom-scrollbar">
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    ${window.state.orders.map(o => `
+                                        <div class="bg-white/5 p-8 rounded-3xl border border-spice-gold/20 shadow-lg">
+                                            <div class="flex justify-between items-start mb-6 border-b border-white/10 pb-6">
+                                                <div class="flex-1 pr-4">
+                                                    <h4 class="font-bold text-lg text-spice-gold leading-tight">${o.address}</h4>
+                                                    <p class="text-sm text-gray-400 mt-2 font-mono">${o.phone}</p>
+                                                </div>
+                                                <div class="text-right"><span class="block text-3xl font-black text-white">₹${o.total}</span></div>
+                                            </div>
+                                            <div class="bg-black/40 rounded-2xl p-6 text-sm space-y-3 border border-white/5 mb-8 font-mono text-gray-300 shadow-inner">
+                                                ${o.items.map(i => `<div class="flex justify-between border-b border-white/5 pb-2 last:border-0 last:pb-0"><span><span class="text-spice-gold font-bold text-lg mr-2">${i.qty}</span> ${i.name.toUpperCase()}</span></div>`).join('')}
+                                            </div>
+                                            <div class="flex items-center justify-between gap-2 bg-black/20 p-2 rounded-2xl">
+                                                ${["Recv", "Prep", "Way", "Done"].map((s, idx) => {
+                                                    const isNext = idx === o.status + 1;
+                                                    const isCurrent = idx === o.status;
+                                                    if(idx === 3 && isNext) return `<label class="flex-1 cursor-pointer bg-spice-gold/10 hover:bg-spice-gold/20 text-spice-gold py-4 rounded-xl flex items-center justify-center border-2 border-dashed border-spice-gold/30 transition-all"><i data-lucide="camera" class="w-5 h-5 mr-2"></i> DONE<input type="file" id="photo-upload-${o.cloudId}" class="hidden" accept="image/*" capture="environment" onchange="updateStatus('${o.cloudId}', ${o.status}, 3)"></label>`;
+                                                    return `<button onclick="updateStatus('${o.cloudId}', ${o.status}, ${idx})" class="flex-1 py-4 rounded-xl text-xs font-black uppercase transition-all ${isCurrent ? 'gold-button text-white shadow-lg scale-105' : isNext ? 'bg-white/10 text-gray-200 hover:bg-white/20' : 'text-gray-600 cursor-not-allowed'}">${s}</button>`;
+                                                }).join('')}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `}
+                    </div>
+                `;
+            }
+            else if (['admin_login', 'admin'].includes(window.state.view)) {
+                // ... (Admin view remains unchanged)
+                container.innerHTML = `
+                    <div class="flex-1 bg-spice-cream flex flex-col h-full overflow-hidden text-spice-dark">
+                        ${window.state.view === 'admin_login' ? `
+                            <div class="flex-1 flex flex-col items-center justify-center p-8 bg-white relative">
+                                <button onclick="setState({view: 'welcome'})" class="absolute top-6 right-6 text-spice-dark/30 hover:text-spice-red transition-colors"><i data-lucide="x" class="w-8 h-8"></i></button>
+                                <div class="w-20 h-20 bg-spice-dark rounded-3xl flex items-center justify-center mb-8 text-white shadow-2xl"><i data-lucide="shield" class="w-10 h-10"></i></div>
+                                <h2 class="text-3xl font-black mb-10 text-spice-dark tracking-tight">Admin Access</h2>
+                                <input id="adm-pwd" type="password" placeholder="Admin Key" class="w-full max-w-xs bg-spice-cream border-2 border-spice-gold/20 p-6 rounded-2xl text-center mb-6 text-spice-dark font-bold tracking-widest text-xl focus:border-spice-gold outline-none transition-all">
+                                <button onclick="if(document.getElementById('adm-pwd').value==='${ADMIN_PASSWORD}') setState({view:'admin'})" class="w-full max-w-xs gold-button p-6 rounded-2xl font-black text-xl shadow-lg">Authenticate</button>
+                            </div>
+                        ` : `
+                            <header class="p-8 border-b border-spice-gold/10 shrink-0 flex justify-between items-center shadow-sm z-10 bg-white">
+                                <h2 class="font-black text-2xl text-spice-dark flex items-center gap-3"><i data-lucide="database" class="w-6 h-6 text-spice-gold"></i> Sovereign Database</h2>
+                                <button onclick="setState({view:'welcome'})" class="bg-spice-cream p-4 rounded-2xl hover:bg-spice-red/10 text-spice-dark border border-spice-gold/10 font-bold flex items-center gap-2"><i data-lucide="x" class="w-5 h-5"></i> EXIT</button>
+                            </header>
+                            <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar bg-spice-cream">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    ${window.state.orders.map(o => `
+                                        <div class="bg-white p-8 rounded-[2rem] border border-spice-gold/20 shadow-sm flex flex-col hover:border-spice-gold/50 transition-all hover:shadow-xl">
+                                            <div class="flex justify-between items-start mb-6">
+                                                <div class="flex-1 pr-3">
+                                                    <span class="text-[10px] font-black bg-spice-gold/10 text-spice-gold px-3 py-1 rounded-full border border-spice-gold/20 mb-3 inline-block font-mono tracking-wider">${o.id}</span>
+                                                    <h3 class="font-bold text-lg text-spice-dark leading-snug">${o.address}</h3>
+                                                </div>
+                                                <button onclick="deleteOrder('${o.cloudId}')" class="text-red-300 p-3 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                            </div>
+                                            <div class="flex-1 space-y-3 mb-6 border-t border-dashed border-spice-gold/20 pt-6">
+                                                ${o.items.map(i => `<div class="text-sm flex justify-between text-gray-500 font-medium"><span><span class="font-black text-spice-dark">${i.qty}</span> ${i.name}</span><span class="font-mono text-spice-gold font-bold">₹${i.price*i.qty}</span></div>`).join('')}
+                                            </div>
+                                            ${o.completionPhoto ? `<div class="mt-2 mb-6 overflow-hidden rounded-2xl border-2 border-spice-gold/20 relative group"><div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div><img src="${o.completionPhoto}" class="w-full h-40 object-cover"></div>` : ''}
+                                            <div class="mt-auto pt-6 border-t border-spice-gold/10 flex justify-between items-center">
+                                                <div><p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total</p><p class="text-2xl font-black text-spice-dark">₹${o.total}</p></div>
+                                                <div class="text-right">
+                                                    <span class="inline-block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${o.status === 3 ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-spice-gold/10 text-spice-gold border border-spice-gold/20'}">${["Received", "Prep", "On Way", "Done"][o.status]}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `}
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+        }
+
+        initApp();
+    </script>
+</body>
+</html>
