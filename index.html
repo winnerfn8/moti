@@ -102,8 +102,86 @@
             'B': ['Tandoor', 'Naan', 'Kulcha']
         };
         
-        const COUNTRY_CODES = [{ code: "+91", label: "🇮🇳 +91" }, { code: "+1", label: "🇺🇸 +1" }, { code: "+44", label: "🇬🇧 +44" }, { code: "+971", label: "🇦🇪 +971" }, { code: "+880", label: "🇧🇩 +880" }, { code: "+61", label: "🇦🇺 +61" }];
-
+        const COUNTRY_CODES = [
+           [
+  { code: "+91", label: "🇮🇳 +91" }, // India (must be first)
+  { code: "+1", label: "🇺🇸 +1" }, // United States
+  { code: "+1", label: "🇨🇦 +1" }, // Canada
+  { code: "+7", label: "🇷🇺 +7" }, // Russia
+  { code: "+7", label: "🇰🇿 +7" }, // Kazakhstan
+  { code: "+20", label: "🇪🇬 +20" }, // Egypt
+  { code: "+27", label: "🇿🇦 +27" }, // South Africa
+  { code: "+30", label: "🇬🇷 +30" }, // Greece
+  { code: "+31", label: "🇳🇱 +31" }, // Netherlands
+  { code: "+32", label: "🇧🇪 +32" }, // Belgium
+  { code: "+33", label: "🇫🇷 +33" }, // France
+  { code: "+34", label: "🇪🇸 +34" }, // Spain
+  { code: "+36", label: "🇭🇺 +36" }, // Hungary
+  { code: "+39", label: "🇮🇹 +39" }, // Italy
+  { code: "+40", label: "🇷🇴 +40" }, // Romania
+  { code: "+41", label: "🇨🇭 +41" }, // Switzerland
+  { code: "+43", label: "🇦🇹 +43" }, // Austria
+  { code: "+44", label: "🇬🇧 +44" }, // United Kingdom
+  { code: "+45", label: "🇩🇰 +45" }, // Denmark
+  { code: "+46", label: "🇸🇪 +46" }, // Sweden
+  { code: "+47", label: "🇳🇴 +47" }, // Norway
+  { code: "+48", label: "🇵🇱 +48" }, // Poland
+  { code: "+49", label: "🇩🇪 +49" }, // Germany
+  { code: "+51", label: "🇵🇪 +51" }, // Peru
+  { code: "+52", label: "🇲🇽 +52" }, // Mexico
+  { code: "+53", label: "🇨🇺 +53" }, // Cuba
+  { code: "+54", label: "🇦🇷 +54" }, // Argentina
+  { code: "+55", label: "🇧🇷 +55" }, // Brazil
+  { code: "+56", label: "🇨🇱 +56" }, // Chile
+  { code: "+57", label: "🇨🇴 +57" }, // Colombia
+  { code: "+58", label: "🇻🇪 +58" }, // Venezuela
+  { code: "+60", label: "🇲🇾 +60" }, // Malaysia
+  { code: "+61", label: "🇦🇺 +61" }, // Australia
+  { code: "+62", label: "🇮🇩 +62" }, // Indonesia
+  { code: "+63", label: "🇵🇭 +63" }, // Philippines
+  { code: "+64", label: "🇳🇿 +64" }, // New Zealand
+  { code: "+65", label: "🇸🇬 +65" }, // Singapore
+  { code: "+66", label: "🇹🇭 +66" }, // Thailand
+  { code: "+81", label: "🇯🇵 +81" }, // Japan
+  { code: "+82", label: "🇰🇷 +82" }, // South Korea
+  { code: "+84", label: "🇻🇳 +84" }, // Vietnam
+  { code: "+86", label: "🇨🇳 +86" }, // China
+  { code: "+90", label: "🇹🇷 +90" }, // Turkey
+  { code: "+92", label: "🇵🇰 +92" }, // Pakistan
+  { code: "+93", label: "🇦🇫 +93" }, // Afghanistan
+  { code: "+94", label: "🇱🇰 +94" }, // Sri Lanka
+  { code: "+95", label: "🇲🇲 +95" }, // Myanmar
+  { code: "+98", label: "🇮🇷 +98" }, // Iran
+  { code: "+212", label: "🇲🇦 +212" }, // Morocco
+  { code: "+213", label: "🇩🇿 +213" }, // Algeria
+  { code: "+216", label: "🇹🇳 +216" }, // Tunisia
+  { code: "+218", label: "🇱🇾 +218" }, // Libya
+  { code: "+220", label: "🇬🇲 +220" }, // Gambia
+  { code: "+221", label: "🇸🇳 +221" }, // Senegal
+  { code: "+234", label: "🇳🇬 +234" }, // Nigeria
+  { code: "+254", label: "🇰🇪 +254" }, // Kenya
+  { code: "+351", label: "🇵🇹 +351" }, // Portugal
+  { code: "+352", label: "🇱🇺 +352" }, // Luxembourg
+  { code: "+353", label: "🇮🇪 +353" }, // Ireland
+  { code: "+354", label: "🇮🇸 +354" }, // Iceland
+  { code: "+358", label: "🇫🇮 +358" }, // Finland
+  { code: "+420", label: "🇨🇿 +420" }, // Czech Republic
+  { code: "+421", label: "🇸🇰 +421" }, // Slovakia
+  { code: "+852", label: "🇭🇰 +852" }, // Hong Kong
+  { code: "+853", label: "🇲🇴 +853" }, // Macau
+  { code: "+855", label: "🇰🇭 +855" }, // Cambodia
+  { code: "+880", label: "🇧🇩 +880" }, // Bangladesh
+  { code: "+886", label: "🇹🇼 +886" }, // Taiwan
+  { code: "+971", label: "🇦🇪 +971" }, // UAE
+  { code: "+972", label: "🇮🇱 +972" }, // Israel
+  { code: "+973", label: "🇧🇭 +973" }, // Bahrain
+  { code: "+974", label: "🇶🇦 +974" }, // Qatar
+  { code: "+975", label: "🇧🇹 +975" }, // Bhutan
+  { code: "+976", label: "🇲🇳 +976" }, // Mongolia
+  { code: "+977", label: "🇳🇵 +977" }, // Nepal
+  { code: "+966", label: "🇸🇦 +966" }  // Saudi Arabia
+];
+            
         // Menu Data
         const MENU_DATA = [
             // SOUP
@@ -690,4 +768,5 @@
         initApp();
     </script>
 </body>
+
 </html>
